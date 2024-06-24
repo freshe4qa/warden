@@ -64,8 +64,8 @@ git checkout v0.3.0
 make install
 
 # config
-wardend config chain-id $WARDEN_CHAIN_ID
-wardend config keyring-backend test
+#wardend config chain-id $WARDEN_CHAIN_ID
+#wardend config keyring-backend test
 
 # init
 wardend init $NODENAME --chain-id $WARDEN_CHAIN_ID
@@ -142,20 +142,10 @@ break
 ;;
 
 "Create Validator")
-wardend tx staking create-validator \
---amount=1000000uward \
---pubkey=$(wardend tendermint show-validator) \
---moniker=$NODENAME \
---chain-id=buenavista-1 \
---commission-rate=0.05 \
---commission-max-rate=0.20 \
---commission-max-change-rate=0.01 \
---min-self-delegation=1 \
---from=wallet \
---gas-prices=0.01uward \
---gas-adjustment=1.5 \
---gas=300000 \
--y 
+wardend tx staking create-validator $HOME/.warden/validator.json \
+    --from=wallet \
+    --chain-id=buenavista-1 \
+    --fees=500uward -y 
   
 break
 ;;
