@@ -51,18 +51,17 @@ sudo apt update && sudo apt upgrade -y
 apt install curl iptables build-essential git wget jq make gcc nano tmux htop nvme-cli pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip libleveldb-dev -y
 
 # install go
+sudo rm -rf /usr/local/go
+curl -L https://go.dev/dl/go1.21.6.linux-amd64.tar.gz | sudo tar -xzf - -C /usr/local
+echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> $HOME/.bash_profile
+source .bash_profile
+
+# download binary
 cd && wget https://github.com/warden-protocol/wardenprotocol/releases/download/v0.4.0/wardend_Linux_x86_64.zip
 unzip wardend_Linux_x86_64.zip
 rm -rf wardend_Linux_x86_64.zip
 chmod +x wardend
 sudo mv wardend $(which wardend)
-
-# download binary
-cd $HOME && rm -rf wardenprotocol
-git clone https://github.com/warden-protocol/wardenprotocol
-cd  wardenprotocol
-git checkout v0.3.0
-make install
 
 # config
 #wardend config chain-id $WARDEN_CHAIN_ID
