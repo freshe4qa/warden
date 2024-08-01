@@ -51,10 +51,11 @@ sudo apt update && sudo apt upgrade -y
 apt install curl iptables build-essential git wget jq make gcc nano tmux htop nvme-cli pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip libleveldb-dev -y
 
 # install go
-sudo rm -rf /usr/local/go
-curl -L https://go.dev/dl/go1.21.6.linux-amd64.tar.gz | sudo tar -xzf - -C /usr/local
-echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> $HOME/.bash_profile
-source .bash_profile
+cd && wget https://github.com/warden-protocol/wardenprotocol/releases/download/v0.4.0/wardend_Linux_x86_64.zip
+unzip wardend_Linux_x86_64.zip
+rm -rf wardend_Linux_x86_64.zip
+chmod +x wardend
+sudo mv wardend $(which wardend)
 
 # download binary
 cd $HOME && rm -rf wardenprotocol
@@ -86,6 +87,15 @@ sed -i -e "s/^seeds *=.*/seeds = \"$SEEDS\"/; s/^persistent_peers *=.*/persisten
 indexer="null"
 sed -i -e "s/^indexer *=.*/indexer = \"$indexer\"/" $HOME/.warden/config/config.toml
 
+#update
+sed -i '1i\\
+$ a\
+[oracle]\
+enabled = "true"\
+oracle_address = "localhost:8080"\
+client_timeout = "2s"\
+metrics_enabled = "true"' $HOME/.warden/config/app.toml
+
 # config pruning
 pruning="custom"
 pruning_keep_recent="100"
@@ -99,6 +109,32 @@ sed -i "s/snapshot-interval *=.*/snapshot-interval = 0/g" $HOME/.warden/config/a
 
 # enable prometheus
 sed -i -e "s/prometheus = false/prometheus = true/" $HOME/.warden/config/config.toml
+
+#update
+cd && curl -Ls https://github.com/skip-mev/slinky/releases/download/v1.0.4/slinky-1.0.4-linux-amd64.tar.gz > slinky-1.0.4-linux-amd64.tar.gz
+tar -xzf slinky-1.0.4-linux-amd64.tar.gz
+sudo mv slinky-1.0.4-linux-amd64/slinky $HOME/go/bin/slinky
+
+#update
+GRPC_PORT=$(grep 'address = ' "$HOME/.warden/config/app.toml" | awk -F: '{print $NF}' | grep '90"$' | tr -d '"')
+
+#update
+sudo tee /etc/systemd/system/warden-slinky.service > /dev/null << EOF
+[Unit]
+Description=Slinky for Warden Protocol service
+After=network-online.target
+[Service]
+User=$USER
+ExecStart=$(which slinky) --market-map-endpoint="127.0.0.1:$GRPC_PORT" --log-disable-file-rotation
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65535
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl enable warden-slinky
+sudo systemctl start warden-slinky
 
 # create service
 sudo tee /etc/systemd/system/wardend.service > /dev/null << EOF
@@ -123,7 +159,7 @@ curl https://snapshots-testnet.nodejumper.io/wardenprotocol-testnet/wardenprotoc
 sudo systemctl daemon-reload
 sudo systemctl enable wardend
 sudo systemctl restart wardend
-
+sudo systemctl restart warden-slinky
 break
 ;;
 
