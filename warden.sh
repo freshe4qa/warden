@@ -57,11 +57,10 @@ echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> $HOME/.bash_profile
 source .bash_profile
 
 # download binary
-cd && wget https://github.com/warden-protocol/wardenprotocol/releases/download/v0.4.0/wardend_Linux_x86_64.zip
-unzip wardend_Linux_x86_64.zip
-rm -rf wardend_Linux_x86_64.zip
-chmod +x wardend
-sudo mv wardend $(which wardend)
+cd && rm -rf 0g-chain
+git clone -b v0.3.2 https://github.com/0glabs/0g-chain.git
+cd 0g-chain
+make install
 
 # config
 #wardend config chain-id $WARDEN_CHAIN_ID
@@ -105,6 +104,11 @@ sed -i -e "s/^pruning-keep-recent *=.*/pruning-keep-recent = \"$pruning_keep_rec
 sed -i -e "s/^pruning-keep-every *=.*/pruning-keep-every = \"$pruning_keep_every\"/" $HOME/.warden/config/app.toml
 sed -i -e "s/^pruning-interval *=.*/pruning-interval = \"$pruning_interval\"/" $HOME/.warden/config/app.toml
 sed -i "s/snapshot-interval *=.*/snapshot-interval = 0/g" $HOME/.warden/config/app.toml
+
+#update
+sed -i \
+  -e 's/timeout_precommit_delta = ".*"/timeout_precommit_delta = "0ms"/g' \
+  $HOME/.warden/config/config.toml
 
 # enable prometheus
 sed -i -e "s/prometheus = false/prometheus = true/" $HOME/.warden/config/config.toml
