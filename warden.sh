@@ -57,10 +57,11 @@ echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> $HOME/.bash_profile
 source .bash_profile
 
 # download binary
-cd && rm -rf 0g-chain
-git clone -b v0.3.2 https://github.com/0glabs/0g-chain.git
-cd 0g-chain
-make install
+cd && wget https://github.com/warden-protocol/wardenprotocol/releases/download/v0.3.2/wardend_Linux_x86_64.zip
+unzip wardend_Linux_x86_64.zip
+rm -rf wardend_Linux_x86_64.zip
+chmod +x wardend
+sudo mv wardend $(which wardend)
 
 # config
 #wardend config chain-id $WARDEN_CHAIN_ID
